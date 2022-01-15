@@ -1,0 +1,13 @@
+<div class="container" style="background-color:powderblue;">
+    <%= render 'form' %>
+</div>
+
+<div class="container bg-info">
+    <% if @message1.length > 0 %>
+        <h6>Word - Syllable Count <br>
+        (Using Emir Ayndin's algorithm)</h6>
+        <% @message1.each do |key, value| %>
+            <span class="text-white"><%= "#{key}" %> - <%= "#{value}" %></span>
+        <% end %>
+    <% end %>
+</div>

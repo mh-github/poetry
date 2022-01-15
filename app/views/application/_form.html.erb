@@ -1,0 +1,23 @@
+<h1>Count Syllables</h1>
+
+<%= form_with(url: "/syllables") do %>
+    <div class="row"><div>&nbsp;</div></div>
+    <div class="row">
+        <div class="border">
+            <%= label_tag 'words', 'Enter word(s)' %>
+            <%= text_field_tag "words" %>
+        </div>
+        <div class="col-md-auto">&nbsp;&nbsp;&nbsp;</div>
+    </div>
+
+    <div class="row"><div>&nbsp;</div></div>
+
+    <div class="row">
+        <!-- <div class="col-md-auto">&nbsp;</div> -->
+        <div>
+            <%= submit_tag("Submit", class: "btn btn-secondary", data: {tooltip_display: :true, placement: :bottom})  %>
+        </div>
+    </div>
+    <div class="col-md-auto">&nbsp;&nbsp;&nbsp;</div>
+   
+<% end %>
