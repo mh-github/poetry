@@ -1,7 +1,8 @@
 # app/controllers/home_controller.rb
 class HomeController < ApplicationController
     
-    @@message1 = {}
+    @@message1  = ""
+    @@syllables = {}
 
     def index
 
@@ -36,7 +37,8 @@ class HomeController < ApplicationController
             doubleAndtripple_2 = word.scan(/[eaoui][^eaoui]/m).size
             if doubleAndtripple_1 > 1 or doubleAndtripple_2 > 1
                 if word[-3..-1] == "ted" or word[-3..-1] == "tes" or word[-3..-1] == "ses" or word[-3..-1] == "ied" or word[-3..-1] == "ies"
-                        pass
+                        # pass
+                        nil
                 else
                     disc += 1
                 end
@@ -48,7 +50,8 @@ class HomeController < ApplicationController
         
         if word[-1] == "e"
             if word[-2..-1] == "le" and not le_except.include?(word)
-                pass
+                # pass
+                nil
             else
                 disc += 1
             end
@@ -72,12 +75,13 @@ class HomeController < ApplicationController
 
         #8) add one if "y" is surrounded by non-vowels and is not in the last word.
         # for i, j in enumerate(word)
-        word.split.each_with_index do |j, i| # check this loop
+        word.chars.each_with_index do |j, i| # check this loop
+        if j == "y"
             if (i != 0) and (i != word.length-1)
-                # if word[i-1] not in "aeoui" and word[i+1] not in "aeoui"
                 if not "aeoui".include?(word[i-1]) and not "aeoui".include?(word[i+1])
                     syls += 1
                 end
+            end
             end
         end
             
@@ -89,7 +93,8 @@ class HomeController < ApplicationController
         if word[-3..-1] == "ian"
         #and (word[-4:] != "cian" or word[-4:] != "tian") :
             if word[-4..-1] == "cian" or word[-4..-1] == "tian"
-                pass
+                # pass
+                nil
              else
                 syls += 1
             end
@@ -100,7 +105,8 @@ class HomeController < ApplicationController
             if co_two.include?(word[0..3]) or co_two.include?(word[0..4]) or co_two.include?(word[0..5])
                 syls += 1
             elsif co_one.include(word[0..3]) or co_one.include?(word[0..4]) or co_one.include?(word[0..5])
-                pass
+                # pass
+                nil
             else
                 syls += 1
             end
@@ -109,7 +115,8 @@ class HomeController < ApplicationController
         #12) if starts with "pre-" and is followed by a vowel, check if exists in the double syllable dictionary, if not, check if in single dictionary and act accordingly.
         if word[0..2] == "pre" and 'eaoui'.include?(word[3])
             if pre_one.include?(word[0..5])
-                pass
+                # pass
+                nil
             else
                 syls += 1
             end
@@ -121,7 +128,8 @@ class HomeController < ApplicationController
             if negative.include?(word)
                 syls += 1
             else
-                pass
+                # pass
+                nil
             end
         end
         
@@ -133,17 +141,54 @@ class HomeController < ApplicationController
     end
 
     def syllables
-        @@message1 = {}
+        @@syllables.clear()
+        syllables_self              = {}
+        syllables_rapidapi          = {}
+        selected_method             = "self_algorithm"
+        full_response_from_rapidapi = true
 
-        words      = params[:words].split
+        file  = File.open("count_mismatches.txt", "a")
+        words = params[:words].split
         words.each do |word|
-            @@message1[word] = calculate_syllables(word)
+            syllables_self[word] = calculate_syllables(word)
+
+            url = URI("https://wordsapiv1.p.rapidapi.com/words/" + word + "/syllables")
+            http                         = Net::HTTP.new(url.host, url.port)
+            http.use_ssl                 = true
+            http.verify_mode             = OpenSSL::SSL::VERIFY_NONE
+            request                      = Net::HTTP::Get.new(url)
+            request["x-rapidapi-host"]   = 'wordsapiv1.p.rapidapi.com'
+            request["x-rapidapi-key"]    = 'dd22e10baemshde690454add0f5dp17ecc2jsn71d79bd468b9'
+            begin
+                response_body            = JSON.parse(http.request(request).read_body)
+                syllables_rapidapi[word] = response_body["syllables"]["count"]
+
+                if syllables_self[word] != syllables_rapidapi[word]
+                    file.write("#{Time.now.to_s} : #{word}\n")
+                    file.write("Erin Ayndin's algorithm count = #{syllables_self[word]}. RapidAPI count = #{syllables_rapidapi[word]}\n\n")
+                    selected_method = "rapidapi"
+                end
+            rescue => e
+                puts "In rescue block ..."
+                full_response_from_rapidapi = false
+            end
+        end
+        file.close
+        
+        # selection loop, all words responded from RapidAPI
+        if full_response_from_rapidapi and selected_method == "rapidapi"
+            @@message1  = "Syllables count from RapidAPI"
+            @@syllables = syllables_rapidapi
+        else
+            @@message1  = "Syllables count using Emir Ayndin's algorithm"
+            @@syllables = syllables_self
         end
 
         redirect_to action: :display
     end
 
     def display
-        @message1 = @@message1
+        @message1  = @@message1
+        @syllables = @@syllables
     end
 end
