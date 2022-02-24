@@ -158,7 +158,7 @@ class HomeController < ApplicationController
             http.verify_mode             = OpenSSL::SSL::VERIFY_NONE
             request                      = Net::HTTP::Get.new(url)
             request["x-rapidapi-host"]   = 'wordsapiv1.p.rapidapi.com'
-            request["x-rapidapi-key"]    = 'dd22e10baemshde690454add0f5dp17ecc2jsn71d79bd468b9'
+            request["x-rapidapi-key"]    = 'insert rapid api key here'
             begin
                 response_body            = JSON.parse(http.request(request).read_body)
                 syllables_rapidapi[word] = response_body["syllables"]["count"]
